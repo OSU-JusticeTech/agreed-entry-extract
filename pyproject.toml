@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "justicetech-extract"
+version = "0.3.1"
+description = "Extract structured data from Franklin County Municipal Court eviction documents"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Yuehua (Zoe) Duan", email = "duan.425@osu.edu"},
+]
+keywords = ["legal-tech", "document-extraction", "ocr", "nlp", "eviction"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+dependencies = [
+    "openai>=1.0",
+    "python-dateutil>=2.8",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+# PDF-to-image conversion (requires system poppler)
+pdf = [
+    "pdf2image>=1.16",
+]
+# Full pipeline (Gemini OCR uses base openai dep — no extra needed)
+all = [
+    "justicetech-extract[pdf]",
+]
+# Legacy OCR backend (Nanonets, requires GPU)
+nanonets = [
+    "transformers>=4.49.0,<5.0",
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "accelerate>=0.26",
+    "qwen-vl-utils>=0.0.10",
+]
+# Development / testing
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.0",
+]
+
+[project.scripts]
+justicetech = "justicetech_extract.cli:main"
+
+[project.urls]
+Repository = "https://github.com/osu-tdai/justicetech-extract"
+Documentation = "https://github.com/osu-tdai/justicetech-extract#readme"
+
+# ---------------------------------------------------------------------------
+# Tool configuration
+# ---------------------------------------------------------------------------
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/justicetech_extract"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests that call external APIs or load models (deselect with '-m \"not slow\"')",
+    "gpu: marks tests that require a GPU",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true

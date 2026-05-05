@@ -1,0 +1,72 @@
+[
+  {
+    "filename": "2024_CVG_000002_m5hbU9VYVRw_2024_CVG_000002_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned",
+    "text_file": "2024_CVG_000002_m5hbU9VYVRw_2024_CVG_000002_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned.txt",
+    "expected": {
+      "case_number": "2024 CVG 000002",
+      "agreement_signed_date": "2024-01-22",
+      "plaintiff": "Riverdale",
+      "defendant": "Bryant",
+      "outcome_type": "Pay and Stay",
+      "payment_count": 4,
+      "total_payment_sum": "2538.52",
+      "mandatory_vacate_date": null
+    }
+  },
+  {
+    "filename": "2024_CVG_000003_lpDU1pRcDNm_2024_CVG_000003_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned",
+    "text_file": "2024_CVG_000003_lpDU1pRcDNm_2024_CVG_000003_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned.txt",
+    "expected": {
+      "case_number": "2024 CVG 000003",
+      "agreement_signed_date": "2024-01-22",
+      "plaintiff": "McNaughten",
+      "defendant": "Nowlin",
+      "outcome_type": "Vacate Only",
+      "payment_count": 0,
+      "total_payment_sum": null,
+      "mandatory_vacate_date": "2024-01-31"
+    }
+  },
+  {
+    "filename": "2024_CVG_000004_nI2Nm1nZXhO_2024_CVG_000004_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned",
+    "text_file": "2024_CVG_000004_nI2Nm1nZXhO_2024_CVG_000004_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned.txt",
+    "expected": {
+      "case_number": "2024 CVG 000004",
+      "agreement_signed_date": "2024-01-22",
+      "plaintiff": "McNaughten",
+      "defendant": "Eggleton",
+      "outcome_type": "Pay and Stay",
+      "payment_count": 4,
+      "total_payment_sum": "3488.59",
+      "mandatory_vacate_date": null
+    }
+  },
+  {
+    "filename": "2024_CVG_000005_kQra2dqUCtG_2024_CVG_000005_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned",
+    "text_file": "2024_CVG_000005_kQra2dqUCtG_2024_CVG_000005_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned.txt",
+    "expected": {
+      "case_number": "2024 CVG 000005",
+      "agreement_signed_date": "2024-01-22",
+      "plaintiff": "McNaughten",
+      "defendant": "Carter",
+      "outcome_type": "Pay and Vacate",
+      "payment_count": 3,
+      "total_payment_sum": "4370.17",
+      "mandatory_vacate_date": "2024-02-29"
+    }
+  },
+  {
+    "filename": "2024_CVG_000008_jFWYTFQUlI4_2024_CVG_000008_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned",
+    "text_file": "2024_CVG_000008_jFWYTFQUlI4_2024_CVG_000008_-_1_22_2024_-_DAGREED_-_CV_Docket_-_1_23_2024_cleaned.txt",
+    "expected": {
+      "case_number": "2024 CVG 000008",
+      "agreement_signed_date": "2024-01-22",
+      "plaintiff": "McNaughten",
+      "defendant": "Ferguson",
+      "outcome_type": "Pay and Stay",
+      "payment_count": 4,
+      "total_payment_sum": null,
+      "mandatory_vacate_date": null
+    }
+  }
+]
