@@ -133,23 +133,6 @@ The following remain external to the package by design:
 - **File transfer** (Globus) — handled upstream in the processing pipeline.
 - **Dashboard** (Streamlit) — separate project that consumes this package's output.
 
-## Contributing
-
-Contributions are welcome. Please open an issue to discuss proposed changes before submitting a pull request.
-
-```bash
-git clone [https://github.com/OSU-JusticeTech/justicetech-extract.git](https://github.com/OSU-JusticeTech/agreed-entry-extract)
-cd justicetech-extract
-pip install ".[dev]"
-
-# Lint
-ruff check src/
-mypy src/
-
-# Test
-pytest
-```
-
 ## Acknowledgments
 
 This project is developed at the[Translational Data Analytics Institute (TDAI)](https://tdai.osu.edu/) at The Ohio State University as part of the JusticeTech initiative, in collaboration with the Moritz College of Law. The pipeline processes eviction filings from the Franklin County Municipal Court to support research on housing stability and access to justice.
