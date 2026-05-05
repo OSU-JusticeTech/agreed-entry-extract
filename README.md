@@ -1,66 +1,56 @@
 # justicetech-extract
 
-Extract structured data from Franklin County Municipal Court eviction documents.
+> Structured data extraction from Franklin County Municipal Court eviction documents.
 
-This package consolidates the JusticeTech extraction pipeline into an installable Python library that can process PDFs autonomously as they arrive — no Jupyter notebooks or manual intervention required.
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
+![MIT License](https://img.shields.io/badge/license-MIT-green)
+![OCR: Gemini 3 Flash](https://img.shields.io/badge/OCR-Gemini%203%20Flash%20Preview-orange?logo=google&logoColor=white)
+![Extraction: GPT--4o](https://img.shields.io/badge/extraction-GPT--4o-teal?logo=openai&logoColor=white)
+
+**justicetech-extract** is an installable Python package that processes eviction case PDFs autonomously — no Jupyter notebooks or manual intervention required. It uses [Google Gemini 3 Flash Preview](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview) for vision-based OCR, then combines deterministic regex parsing with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o) for structured field extraction, cross-validating results to maximize accuracy across dozens of document layouts.
+
+Built as part of the JusticeTech initiative at [The Ohio State University](https://www.osu.edu/), this tool supports access-to-justice research by transforming unstructured court filings into analysis-ready structured data.
+
+## Highlights
+
+- **Vision-based OCR** — Gemini 3 Flash Preview processes document images directly, replacing traditional OCR pipelines with a multimodal LLM approach.
+- **Hybrid extraction** — regex patterns handle predictable fields; GPT-4o handles ambiguous or variable-format content. Cross-validation catches errors from either approach.
+- **End-to-end PDF pipeline** — PDF rasterization → Gemini OCR → text cleaning → extraction → post-processing, all in a single function call.
+- **Pluggable OCR backends** — abstract interface makes it straightforward to swap Gemini for any alternative provider.
+- **CLI included** — single-file and batch processing from the command line.
 
 ## Installation
 
 ```bash
-# Core package (regex extraction + LLM via OpenAI API)
+# Core package (regex + LLM extraction)
 pip install .
 
-# With Nanonets OCR backend
-pip install ".[nanonets]"
-
-# With PDF-to-image support (requires system poppler-utils)
+# With PDF-to-image conversion (requires system poppler-utils)
 pip install ".[pdf]"
 
-# Everything
+# Full installation
 pip install ".[all]"
 
-# Development (includes pytest, ruff, mypy)
+# Development (pytest, ruff, mypy)
 pip install ".[dev]"
 ```
 
 ### System dependencies
 
-If using the PDF pipeline, install poppler:
+PDF rasterization requires [poppler](https://poppler.freedesktop.org/):
 
 ```bash
-# Ubuntu/Debian
+# Ubuntu / Debian
 sudo apt-get install poppler-utils
 
 # macOS
 brew install poppler
 
-# On OSC, poppler is typically available via: module load poppler
+# Ohio Supercomputer Center (OSC)
+module load poppler
 ```
 
 ## Quick Start
-
-### Process pre-OCR'd text (most common)
-
-```python
-from justicetech_extract import extract_from_text
-
-with open("cleaned_document.txt") as f:
-    text = f.read()
-
-result = extract_from_text(
-    text,
-    filename="2024_CVG_056254_..._cleaned.txt"
-)
-
-# Access structured fields
-print(result.info.case_number)       # "2024 CVG 056254"
-print(result.info.plaintiff)         # "Sunrise Properties LLC"
-print(result.info.outcome_type)      # OutcomeType.PAY_AND_STAY
-print(result.info.payment_schedule)  # [PaymentScheduleItem(...), ...]
-
-# Get a flat dict for CSV/database
-row = result.info.to_flat_dict()
-```
 
 ### Process a PDF end-to-end
 
@@ -71,7 +61,7 @@ result = process_pdf("document.pdf")
 print(result.info.to_flat_dict())
 ```
 
-### Regex-only (no API calls)
+### Regex-only mode (no API calls)
 
 ```python
 from justicetech_extract import extract_from_text
@@ -81,156 +71,89 @@ settings = Settings(use_llm=False)
 result = extract_from_text(text, filename="doc.txt", settings=settings)
 ```
 
-### CLI
+### Command-line interface
 
 ```bash
-# Extract from a text file
+# Single file
 justicetech extract cleaned_doc.txt -o result.json
 
-# Regex only (no API calls)
+# Regex only
 justicetech extract cleaned_doc.txt --regex-only
 
-# Process a PDF
+# PDF end-to-end
 justicetech process document.pdf -o result.json
 
-# Batch process a directory
-justicetech extract-dir ./post_ocr/ -o ./results/
+# Batch directory
+justicetech process-dir ./sample/ -o ./results/
 ```
 
 ## Configuration
 
 All settings are controlled via environment variables or a `.env` file:
 
-```bash
-cp .env.example .env
-# Edit .env with your values
-```
-
 | Variable | Default | Description |
-|----------|---------|-------------|
-| `LLM_API_KEY` | — | API key for OpenAI-compatible endpoint |
-| `LLM_BASE_URL` | `https://litellmproxy.osu-ai.org` | LLM endpoint URL |
-| `LLM_MODEL` | `GPT-4o` | Model name (case-sensitive!) |
-| `LLM_TEMPERATURE` | `0.1` | Sampling temperature |
-| `OCR_BACKEND` | `external` | `nanonets` or `external` |
-| `OCR_MODEL_PATH` | `nanonets/Nanonets-OCR2-3B` | HuggingFace model path |
-| `OCR_DEVICE` | `cuda` | `cuda` or `cpu` |
-| `PDF_DPI` | `300` | DPI for PDF rasterization |
+|:---------|:--------|:------------|
+| `OCR_BACKEND` | `gemini` | Vision model used for OCR |
+| `LLM_API_KEY` | — | API key for the extraction LLM endpoint |
+| `LLM_BASE_URL` | `https://litellmproxy.osu-ai.org` | OpenAI-compatible LLM endpoint |
+| `LLM_MODEL` | `GPT-4o` | Model used for structured extraction |
 
 ## Architecture
 
 ```
-PDF ──→ [pdf_to_images] ──→ Images ──→ [OCR Backend] ──→ Raw Text
+PDF ──→ pdf_to_images ──→ Images ──→ Gemini 3 Flash (OCR) ──→ Raw Text
+                                                                  │
+                                                           clean_ocr_text
+                                                                  │
+                                                            Cleaned Text
+                                                                  │
+                                                  ┌───────────────┴───────────────┐
+                                                  │                               │
+                                           RegexExtractor                  LLMExtractor
+                                           (deterministic)                   (GPT-4o)
+                                                  │                               │
+                                                  └───────────┬───────────────────┘
                                                               │
-                                                    [clean_ocr_text]
+                                                       cross-validate
                                                               │
-                                                        Cleaned Text
+                                                        apply_fixups
                                                               │
-                                              ┌───────────────┴───────────────┐
-                                              │                               │
-                                      [RegexExtractor]              [LLMExtractor]
-                                              │                               │
-                                              └───────────┬───────────────────┘
-                                                          │
-                                                  [cross-validate]
-                                                          │
-                                                  [apply_fixups]
-                                                          │
-                                                  ExtractedCourtInfo
+                                                     ExtractedCourtInfo
 ```
 
-### Package structure
+**OCR stage.** PDFs are rasterized to images, then processed by Gemini 3 Flash Preview using its native vision capabilities. This approach handles poor scans, stamps, and handwritten annotations more robustly than traditional OCR engines.
 
-```
-src/justicetech_extract/
-├── __init__.py          # Public API: extract_from_text(), process_pdf()
-├── config.py            # Settings via pydantic-settings (.env support)
-├── models.py            # Pydantic data models
-├── cli.py               # Command-line interface
-├── ocr/
-│   ├── base.py          # Abstract OCR backend interface
-│   ├── nanonets.py      # Nanonets-OCR2-3B backend
-│   ├── pdf_convert.py   # PDF → images via pdf2image
-│   └── clean.py         # Post-OCR text cleaning
-├── extraction/
-│   ├── regex_extractor.py   # Deterministic pattern matching (v3.9)
-│   ├── llm_extractor.py     # LLM-based extraction
-│   └── pipeline.py          # Combined extraction + cross-validation
-└── postprocessing/
-    └── fixups.py        # Payment totals, case number normalization
-```
+**Extraction stage.** The **RegexExtractor** uses ~60 compiled patterns to extract well-structured fields (case numbers, dates, addresses). The **LLMExtractor** sends cleaned text to GPT-4o for free-text reasoning — outcome classification, payment schedule parsing, and judgment interpretation. Cross-validation reconciles disagreements, preferring regex for fields where patterns are reliable and GPT-4o output for fields requiring contextual understanding.
 
-## Testing
+### Out of scope
+
+The following remain external to the package by design:
+
+- **SLURM job scripts** — batch orchestration is deployment-specific.
+- **File transfer** (Globus) — handled upstream in the processing pipeline.
+- **Dashboard** (Streamlit) — separate project that consumes this package's output.
+
+## Contributing
+
+Contributions are welcome. Please open an issue to discuss proposed changes before submitting a pull request.
 
 ```bash
-# Install dev dependencies
+git clone [https://github.com/OSU-JusticeTech/justicetech-extract.git](https://github.com/OSU-JusticeTech/agreed-entry-extract)
+cd justicetech-extract
 pip install ".[dev]"
 
-# Run all tests
+# Lint
+ruff check src/
+mypy src/
+
+# Test
 pytest
-
-# Run fast tests only (no API calls)
-pytest -m "not slow"
-
-# Run with coverage
-pytest --cov=justicetech_extract
-
-# Run ground truth accuracy tests
-pytest tests/test_ground_truth.py -v
 ```
 
-### Ground truth tests
+## Acknowledgments
 
-The test suite includes accuracy benchmarks against manually verified
-extractions. To populate:
-
-1. Copy validated text files into `tests/fixtures/`
-2. Add expected results to `tests/ground_truth/cases.json`
-3. Run `pytest tests/test_ground_truth.py -v`
-
-The tests report per-field accuracy and fail if it drops below configured
-thresholds (default 85% overall, 95% for case numbers). This lets you
-quickly verify after LLM updates or provider switches.
-
-## Migration from existing scripts
-
-This package consolidates:
-
-| Original file | Package module |
-|----------------|----------------|
-| `pdf_to_images.py` | `justicetech_extract.ocr.pdf_convert` |
-| `nanonets_ocr.py` | `justicetech_extract.ocr.nanonets` |
-| `clean_ocr.py` | `justicetech_extract.ocr.clean` |
-| `court_document_extractor.py` (ImprovedExtractor) | `justicetech_extract.extraction.regex_extractor` |
-| `court_document_extractor.py` (EnhancedCourtDocumentExtractor) | `justicetech_extract.extraction.pipeline` + `llm_extractor` |
-| `court_extractor_osc.py` | `justicetech_extract.cli` (batch mode) |
-| `Step3_*.ipynb` (payment fixups) | `justicetech_extract.postprocessing.fixups` |
-| SLURM scripts | Not included — batch orchestration is external |
-
-### What's NOT in the package
-
-- **SLURM job scripts** — batch orchestration stays external
-- **File transfer** (Globus) — handled by the processing pipeline
-- **Dashboard** (Streamlit) — separate project, consumes this package's output
-
-## Switching OCR providers
-
-The OCR backend is abstracted behind `OCRBackendBase`. To switch from
-Nanonets to a local/OSC API endpoint:
-
-```python
-from justicetech_extract.config import Settings
-
-# Use a different model
-settings = Settings(
-    ocr_backend="nanonets",
-    ocr_model_path="/path/to/local/model",
-)
-```
-
-To add a completely new backend, subclass `OCRBackendBase` and implement
-`process_image()`.
+This project is developed at the[Translational Data Analytics Institute (TDAI)](https://tdai.osu.edu/) at The Ohio State University as part of the JusticeTech initiative, in collaboration with the Moritz College of Law. The pipeline processes eviction filings from the Franklin County Municipal Court to support research on housing stability and access to justice.
 
 ## License
 
-MIT
+[MIT](LICENSE)
