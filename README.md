@@ -1,5 +1,7 @@
 # justicetech-extract
 
+The JusticeTech extraction pipeline converts scanned eviction court documents into structured, analysis-ready data. It focuses on Franklin County Municipal Court Agreed Entry filings, which often combine printed form language, handwritten annotations, court stamps, and signatures. The pipeline is designed for large-scale batch processing while preserving enough audit information for users to understand how each record was created and how much confidence to place in the result.
+
 > Structured data extraction from Franklin County Municipal Court eviction documents.
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)
